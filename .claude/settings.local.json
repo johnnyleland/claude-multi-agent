@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show claude-agent-sdk)",
+      "Bash(git init)",
+      "Bash(git add -A)"
+    ]
+  }
+}
