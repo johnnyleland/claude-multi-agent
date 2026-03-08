@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+import re
 import subprocess
+import sys
 from pathlib import Path
 
 from models.schemas import ReviewResult, ReviewVerdict
@@ -10,14 +12,31 @@ from worktree.manager import WorktreeInfo, WorktreeManager
 log = logging.getLogger(__name__)
 
 
+def _resolve_test_command(test_command: str) -> str:
+    """Replace bare 'python' in a test command with the current interpreter.
+
+    This ensures the merger uses the same Python that runs the orchestrator,
+    even when 'python' is not on PATH (common on Windows).
+    """
+    match = re.match(r"^(python3?)\b", test_command)
+    if match:
+        return f'"{sys.executable}"' + test_command[match.end():]
+    # If the command is just 'pytest ...' without python prefix,
+    # rewrite it as '<python> -m pytest ...'
+    if test_command.strip().startswith("pytest"):
+        return f'"{sys.executable}" -m {test_command}'
+    return test_command
+
+
 def _run_tests(test_command: str, cwd: Path) -> bool:
     """Run the test command and return True if it passes."""
     if not test_command:
         return True
 
-    log.info("Running tests: %s", test_command)
+    resolved = _resolve_test_command(test_command)
+    log.info("Running tests: %s", resolved)
     result = subprocess.run(
-        test_command,
+        resolved,
         shell=True,
         cwd=str(cwd),
         capture_output=True,

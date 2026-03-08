@@ -7,6 +7,7 @@ class AgentConfig:
     model: str = "sonnet"
     permission_mode: str = "bypassPermissions"
     max_turns: int = 50
+    reviewer_max_turns: int = 10
     max_budget_usd: float = 5.0
     specialist_tools: list[str] = field(default_factory=lambda: [
         "Read", "Write", "Edit", "Bash", "Glob", "Grep",

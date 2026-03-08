@@ -71,7 +71,7 @@ async def review_subtask(
                 permission_mode=config.permission_mode,
                 cwd=str(repo_path),
                 model=config.model,
-                max_turns=30,
+                max_turns=config.reviewer_max_turns,
                 max_budget_usd=config.max_budget_usd,
                 output_format={
                     "type": "json_schema",

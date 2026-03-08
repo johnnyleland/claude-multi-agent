@@ -24,5 +24,10 @@ into sublists.
    Example: [["task-01", "task-02"], ["task-03"]] means task-01 and task-02 \
 can run in parallel, then task-03 runs after both complete.
 
+IMPORTANT: Maximize parallelism! If subtasks touch different files (or clearly \
+different sections of the same file), group them together in the same parallel \
+group. Only use sequential ordering (separate groups) when there is a genuine \
+dependency — e.g. subtask B needs the code produced by subtask A.
+
 Your output MUST conform to the TaskPlan JSON schema.\
 """

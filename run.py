@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -67,6 +68,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    # Allow running from inside a Claude Code session (e.g. during development).
+    # The Agent SDK refuses to launch nested sessions unless this is unset.
+    os.environ.pop("CLAUDECODE", None)
+
     args = parse_args()
     setup_logging(verbose=args.verbose)
 
