@@ -10,6 +10,9 @@ build/
 # Agent worktrees (created at runtime)
 .worktrees/
 
+# Claude Code local settings (contains per-machine permission history)
+.claude/settings.local.json
+
 # IDE
 .idea/
 .vscode/
