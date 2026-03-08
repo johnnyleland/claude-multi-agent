@@ -10,6 +10,9 @@ build/
 # Agent worktrees (created at runtime)
 .worktrees/
 
+# Test repos (created for validation)
+test-repo/
+
 # Claude Code local settings (contains per-machine permission history)
 .claude/settings.local.json
 
