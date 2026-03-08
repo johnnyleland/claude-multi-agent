@@ -20,7 +20,7 @@ from utils import setup_logging
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Multi-agent orchestrator: plan → execute → review → merge",
+        description="Multi-agent orchestrator: plan -> execute -> review -> merge",
     )
     parser.add_argument(
         "task",
@@ -60,6 +60,12 @@ def parse_args() -> argparse.Namespace:
         help="Max agentic turns per agent call (default: 50)",
     )
     parser.add_argument(
+        "--security-review",
+        action="store_true",
+        default=False,
+        help="Enable security vulnerability scanning during review phase",
+    )
+    parser.add_argument(
         "--verbose", "-v",
         action="store_true",
         help="Enable debug logging",
@@ -84,6 +90,7 @@ def main() -> None:
         repo_path=repo_path,
         max_retries=args.max_retries,
         test_command=args.test_command,
+        security_review=args.security_review,
         agent=AgentConfig(
             model=args.model,
             max_budget_usd=args.budget,
@@ -102,6 +109,12 @@ def main() -> None:
         print(f"  Merged: {', '.join(result.branches_merged)}")
     if result.branches_rejected:
         print(f"  Rejected: {', '.join(result.branches_rejected)}")
+    if result.security_blocked:
+        print(f"  Security blocked: {', '.join(result.security_blocked)}")
+    if result.security_findings_summary:
+        print("  Security findings:")
+        for finding_line in result.security_findings_summary:
+            print(f"    {finding_line}")
     print(f"  Summary: {result.summary}")
     print("=" * 60)
 

@@ -7,7 +7,15 @@ import sys
 from claude_agent_sdk import ClaudeAgentOptions, ResultMessage, query
 
 from config import AgentConfig
-from models.schemas import ReviewResult, SpecialistResult, Subtask, SubtaskStatus
+from models.schemas import (
+    ReviewResult,
+    SecurityReviewResult,
+    SecuritySeverity,
+    SecurityVerdict,
+    SpecialistResult,
+    Subtask,
+    SubtaskStatus,
+)
 from prompts.specialist import SPECIALIST_SYSTEM_PROMPT
 from worktree.manager import WorktreeInfo
 
@@ -147,6 +155,7 @@ def _build_revision_prompt(
     subtask: Subtask,
     overall_context: str,
     review: ReviewResult,
+    security_review: SecurityReviewResult | None = None,
 ) -> str:
     """Build a prompt for re-running a specialist with reviewer feedback."""
     base = _build_specialist_prompt(subtask, overall_context)
@@ -166,6 +175,26 @@ def _build_revision_prompt(
             "\n**Suggestions:**\n"
             + "\n".join(f"- {s}" for s in review.suggestions)
         )
+
+    # Append security findings if the security reviewer flagged issues
+    if (
+        security_review is not None
+        and security_review.verdict == SecurityVerdict.FAIL
+    ):
+        feedback_lines.append(
+            "\n## Security Findings (MUST FIX — these block merging)"
+        )
+        feedback_lines.append(f"**Security Verdict:** {security_review.verdict.value}")
+        feedback_lines.append(f"**Summary:** {security_review.summary}")
+        for finding in security_review.findings:
+            if finding.severity in (SecuritySeverity.CRITICAL, SecuritySeverity.HIGH):
+                cwe = f" [{finding.cwe_id}]" if finding.cwe_id else ""
+                feedback_lines.append(
+                    f"\n- **{finding.severity.value.upper()}**{cwe} "
+                    f"at `{finding.location}`: {finding.description}\n"
+                    f"  **Recommendation:** {finding.recommendation}"
+                )
+
     feedback_lines.append(
         "\nYou are re-doing this subtask. Your previous attempt was reviewed "
         "and the reviewer found issues listed above. Address ALL of them, "
@@ -181,6 +210,7 @@ async def execute_subtask_revision(
     overall_context: str,
     review: ReviewResult,
     config: AgentConfig,
+    security_review: SecurityReviewResult | None = None,
 ) -> SpecialistResult:
     """Re-run a specialist with reviewer feedback in a fresh worktree."""
     log.info(
@@ -190,7 +220,7 @@ async def execute_subtask_revision(
         worktree_info.path,
     )
 
-    prompt = _build_revision_prompt(subtask, overall_context, review)
+    prompt = _build_revision_prompt(subtask, overall_context, review, security_review)
     result: ResultMessage | None = None
 
     try:

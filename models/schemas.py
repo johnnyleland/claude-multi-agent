@@ -91,6 +91,56 @@ class ReviewResult(BaseModel):
     reasoning: str = Field(description="Explanation of the review decision")
 
 
+class SecuritySeverity(str, Enum):
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    INFO = "info"
+
+
+class SecurityVerdict(str, Enum):
+    PASS = "pass"
+    WARN = "warn"
+    FAIL = "fail"
+
+
+class SecurityFinding(BaseModel):
+    """A single security finding from the security review."""
+
+    severity: SecuritySeverity = Field(description="Severity level of the finding")
+    category: str = Field(
+        description="Security category (e.g. 'Injection', 'Broken Access Control')",
+    )
+    cwe_id: Optional[str] = Field(
+        default=None,
+        description="CWE identifier if applicable (e.g. 'CWE-79')",
+    )
+    location: str = Field(
+        description="File path and line number (e.g. 'src/auth.py:42')",
+    )
+    description: str = Field(
+        description="Description of the vulnerability or concern",
+    )
+    recommendation: str = Field(
+        description="Specific remediation recommendation",
+    )
+
+
+class SecurityReviewResult(BaseModel):
+    """Structured output from the security review agent."""
+
+    subtask_id: str = Field(description="The ID of the subtask being reviewed")
+    verdict: SecurityVerdict = Field(description="Security review decision")
+    findings: list[SecurityFinding] = Field(
+        default_factory=list,
+        description="List of security findings",
+    )
+    summary: str = Field(
+        description="Overall security assessment in 2-4 sentences",
+    )
+
+
 class PipelineResult(BaseModel):
     """Final result of the entire pipeline."""
 
@@ -100,4 +150,6 @@ class PipelineResult(BaseModel):
     subtasks_failed: int
     branches_merged: list[str] = Field(default_factory=list)
     branches_rejected: list[str] = Field(default_factory=list)
+    security_blocked: list[str] = Field(default_factory=list)
+    security_findings_summary: list[str] = Field(default_factory=list)
     summary: str

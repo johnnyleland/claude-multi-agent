@@ -8,6 +8,7 @@ class AgentConfig:
     permission_mode: str = "bypassPermissions"
     max_turns: int = 50
     reviewer_max_turns: int = 10
+    security_reviewer_max_turns: int = 10
     max_budget_usd: float = 5.0
     specialist_tools: list[str] = field(default_factory=lambda: [
         "Read", "Write", "Edit", "Bash", "Glob", "Grep",
@@ -17,6 +18,9 @@ class AgentConfig:
     ])
     planner_tools: list[str] = field(default_factory=lambda: [
         "Read", "Glob", "Grep",
+    ])
+    security_reviewer_tools: list[str] = field(default_factory=lambda: [
+        "Read", "Bash", "Glob", "Grep",
     ])
 
 
@@ -28,4 +32,5 @@ class PipelineConfig:
     main_branch: str = "main"
     max_retries: int = 2
     test_command: str = ""
+    security_review: bool = False
     agent: AgentConfig = field(default_factory=AgentConfig)
